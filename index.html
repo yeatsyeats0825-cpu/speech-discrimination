@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>語音辨識訓練系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #F5F0F2;
+  --card:     #ffffff;
+  --border:   #D4BEC8;
+
+  --ui-dark:   #4A3040;
+  --ui-purple: #7B6079;
+  --ui-mauve:  #D4BEC8;
+  --ui-light:  #F5F0F2;
+
+  --ink:  #4A3040;
+  --ink2: #7B6079;
+  --ink3: #B09AA8;
+
+  /* category exact colors */
+  --asp-big:  #C06C7E;
+  --asp-sub:  #EFC4CC;
+  --asp-sub-text: #7a2030;
+
+  --pos-big:  #5E8F8A;
+  --pos-sub:  #BBDCD8;
+  --pos-sub-text: #2a5e5a;
+
+  --r: 16px; --r-sm: 10px; --r-xs: 6px;
+  --sh:  0 3px 16px rgba(53,56,102,.09);
+  --shh: 0 7px 28px rgba(53,56,102,.16);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.55;
+  min-height: 100vh;
+}
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  background: #7B6079;
+  border-bottom: 3px solid #5a4058;
+  position: sticky; top: 0; z-index: 50;
+  padding: 0;
+}
+.tab {
+  flex: 1; padding: 18px 8px; font-size: 16px; font-weight: 700;
+  color: #e8d8e8; cursor: pointer; text-align: center;
+  border-bottom: 4px solid transparent; margin-bottom: -3px;
+  transition: all .18s; white-space: nowrap;
+  font-family: inherit; background: none;
+  border-top: none; border-left: none; border-right: none;
+}
+.tab:hover { color: #fff; }
+.tab.active { color: #fff; border-bottom-color: #F4D06F; }
+
+/* ── SCREENS ── */
+.screen { display: none; padding: 36px 30px; animation: fi .2s ease; max-width: 900px; margin: 0 auto; }
+.screen.active { display: block; }
+@keyframes fi { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+
+
+/* ── LANDING ── */
+.landing-btn {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 18px 24px;
+  border: 2.5px solid var(--border);
+  border-radius: var(--r); cursor: pointer; font-family: inherit;
+  text-align: left; transition: all .18s; box-shadow: var(--sh);
+}
+.landing-btn:hover { transform: translateY(-2px); box-shadow: var(--shh); }
+.landing-btn-text { flex: 1; font-size: 18px; font-weight: 700; }
+.landing-btn-arrow { font-size: 24px; font-weight: 300; }
+/* ── PROFILE ── */
+.p-hero {
+  background: #F0E5DE;
+  border-radius: var(--r); padding: 36px 32px;
+  text-align: center; margin-bottom: 28px;
+}
+.p-hero h1 {
+  font-family: 'Fredoka One','Noto Sans TC',sans-serif;
+  font-size: 36px; margin-bottom: 8px; color: #4A3040;
+}
+.p-hero p { font-size: 18px; color: #7B6079; opacity: .85; }
+.pcard {
+  background: var(--card); border-radius: var(--r);
+  box-shadow: var(--sh); padding: 32px; border: 2px solid var(--border);
+}
+.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+.frow.full { grid-template-columns: 1fr; }
+.fl { font-size: 14px; font-weight: 700; color: var(--ink2); margin-bottom: 7px; letter-spacing: .05em; text-transform: uppercase; }
+.fi {
+  width: 100%; padding: 14px 18px; font-size: 18px;
+  border: 2.5px solid var(--border); border-radius: var(--r-sm);
+  background: var(--bg); color: var(--ink); font-family: inherit;
+  outline: none; transition: border .15s;
+}
+.fi:focus { border-color: #7B6079; background: #fff; }
+.go-btn {
+  width: 100%; margin-top: 24px; padding: 20px;
+  font-size: 16px; font-weight: 700; font-family: inherit;
+  background: #7B6079; color: #fff; border: none;
+  border-radius: var(--r-sm); cursor: pointer; transition: all .18s;
+}
+.go-btn:hover { opacity: .88; transform: translateY(-2px); }
+
+/* ── HOME ── */
+.pbar {
+  background: #F0E5DE; border-radius: var(--r-sm);
+  padding: 16px 22px; display: flex; align-items: center; gap: 16px;
+  margin-bottom: 34px;
+  border: 2px solid #D4BEC8;
+}
+.pav {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: #C06C7E; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 900; flex-shrink: 0;
+}
+.pnm { font-size: 16px; font-weight: 700; color: #4A3040; }
+.pmt { font-size: 15px; color: #7B6079; }
+.eln { margin-left: auto; font-size: 16px; color: #7B6079; cursor: pointer; border: none; background: none; font-family: inherit; font-weight: 700; }
+.eln:hover { color: #4A3040; }
+
+/* Home category layout — each item on its own row */
+.cat-section { margin-bottom: 32px; padding: 0 2px; }
+.cat-label-pill {
+  display: block;
+  font-size: 16px; font-weight: 900; padding: 9px 24px;
+  border-radius: 40px; letter-spacing: .04em; margin-bottom: 14px;
+  width: fit-content;
+}
+.sub-label-pill {
+  display: block;
+  font-size: 15px; font-weight: 700; padding: 7px 20px;
+  border-radius: 40px; margin: 10px 0 12px;
+  width: fit-content;
+}
+.pc-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; padding-left: 4px; }
+
+.pc {
+  background: var(--card); border-radius: var(--r-sm);
+  border: 2.5px solid var(--border);
+  padding: 14px 20px; text-align: center;
+  cursor: pointer; transition: all .18s;
+  box-shadow: var(--sh); min-width: 110px;
+}
+.pc-ipa { font-size: 18px; font-weight: 700; color: var(--ink); }
+
+/* ── TASK ── */
+.task-outer { max-width: 720px; margin: 0 auto; }
+.task-phoneme-label { text-align: center; font-size: 26px; font-weight: 900; color: var(--ink2); margin-bottom: 18px; }
+.bulbs { display: flex; justify-content: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.bulb {
+  width: 64px; height: 64px; border-radius: 50%;
+  border: 4px solid var(--border); background: var(--card); transition: all .35s;
+  display: flex; align-items: center; justify-content: center;
+}
+.bulb.lit { background: #F4D06F; border-color: #c4a030; box-shadow: 0 0 12px rgba(244,208,111,.8); }
+.bulb.lit::after { content: '★'; color: #4A3040; font-size: 26px; }
+.dino-area { text-align: center; margin-bottom: 26px; user-select: none; }
+.speech-bub {
+  display: inline-block; background: #F5EEFA; border: 3px solid #D4BEC8;
+  border-radius: 18px 18px 18px 4px; padding: 9px 22px;
+  font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 10px;
+}
+.dino-click { cursor: pointer; display: inline-block; transition: transform .18s; }
+.dino-click:hover { transform: scale(1.07); }
+.dino-click.playing { animation: dbounce .45s ease-in-out infinite alternate; }
+@keyframes dbounce { from{transform:translateY(0)} to{transform:translateY(-10px)} }
+.dino-click img, .dino-default { width: 150px; height: 150px; object-fit: contain; border-radius: 20px; display: block; }
+.dino-default { background: #eeeeff; display: flex; align-items: center; justify-content: center; font-size: 84px; border: 3px solid #D4BEC8; }
+.need-play { font-size: 16px; color: #C06C7E; text-align: center; min-height: 24px; margin-bottom: 10px; }
+.tq { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 22px; }
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 680px; margin: 0 auto; }
+.cbtn {
+  background: var(--card); border: 3px solid var(--border);
+  border-radius: var(--r); padding: 20px; cursor: pointer;
+  transition: all .18s; box-shadow: var(--sh);
+  display: flex; align-items: center; justify-content: center; min-height: 280px;
+}
+.cbtn:hover { transform: translateY(-3px); box-shadow: var(--shh); border-color: #7B6079; }
+.cbtn.chosen { border-color: #C06C7E; background: #EFC4CC; transform: scale(.97); }
+.cimg { width: 220px; height: 220px; border-radius: 20px; overflow: hidden; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+.cimg img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ── RESULTS ── */
+.sec-label-res {
+  font-size: 13px; font-weight: 700; color: #7B6079;
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-bottom: 10px; padding-left: 2px;
+}
+.stats-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.rc3 { background: var(--card); border-radius: 12px; border: 2px solid var(--border); padding: 16px 14px; text-align: center; }
+.rc3-label { font-size: 12px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.rc3-val { font-size: 28px; font-weight: 900; color: #4A3040; line-height: 1; }
+.rc3-sub { font-size: 13px; color: var(--ink3); margin-top: 5px; }
+.rc3-val.pink { color: #C06C7E; }
+
+/* Scale */
+.scale-card-new { background: var(--card); border-radius: 14px; border: 2px solid var(--border); padding: 22px 28px; margin-bottom: 20px; }
+.scale-endpoints { display: flex; justify-content: space-between; margin-bottom: 20px; }
+.ep-word { font-size: 20px; font-weight: 900; color: #4A3040; }
+.ep-ipa  { font-size: 14px; color: #7B6079; margin-top: 3px; }
+.scale-track { position: relative; height: 28px; display: flex; align-items: center; margin: 0 14px 12px; }
+.scale-rail { position: absolute; left:0; right:0; height:10px; background:#EDE5E9; border-radius:5px; }
+.scale-fill-a { position:absolute; left:0; height:10px; background:#EFC4CC; border-radius:5px 0 0 5px; }
+.scale-fill-b { position:absolute; right:0; height:10px; background:#BBDCD8; border-radius:0 5px 5px 0; }
+.scale-dots-row { position:absolute; left:0; right:0; display:flex; justify-content:space-between; align-items:center; }
+.sd {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 3px solid #D4BEC8; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #B09AA8; z-index: 2; flex-shrink:0;
+}
+.sd.ans-a { background:#EFC4CC; border-color:#C06C7E; color:#7a2030; }
+.sd.ans-b { background:#BBDCD8; border-color:#5E8F8A; color:#2a5e5a; }
+.sd.no-score { background:#f0ece8; border-color:#c8b8b0; color:#bbb; }
+.sd.star-a { width:36px;height:36px;font-size:18px;background:#EFC4CC;border-color:#C06C7E;border-width:3px;box-shadow:0 0 0 5px rgba(192,108,126,.18);color:#C06C7E; }
+.sd.star-b { width:36px;height:36px;font-size:18px;background:#BBDCD8;border-color:#5E8F8A;border-width:3px;box-shadow:0 0 0 5px rgba(94,143,138,.18);color:#5E8F8A; }
+.scale-nums { display:flex; justify-content:space-between; margin:0 14px; }
+.snum { font-size:14px; font-weight:700; color:#B09AA8; width:28px; text-align:center; }
+.snum.no-score { color:#c8b8b0; }
+.snum.sa { color:#C06C7E; font-weight:900; font-size:15px; }
+.snum.sb { color:#5E8F8A; font-weight:900; font-size:15px; }
+
+/* Trial table */
+.trial-card-new { background:var(--card); border-radius:14px; border:2px solid var(--border); overflow:hidden; margin-bottom:20px; }
+.trial-head-new { font-size:16px; font-weight:700; color:#4A3040; padding:16px 20px; border-bottom:2px solid #EDE5E9; background:#FAF7F9; }
+.trow { display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr; padding:11px 14px; border-bottom:1px solid #F5F0F2; font-size:15px; text-align:center; align-items:center; }
+.trow:last-child { border-bottom:none; }
+.trow.thdr { font-size:12px; font-weight:700; color:#B09AA8; text-transform:uppercase; letter-spacing:.04em; background:#FAF7F9; border-bottom:2px solid #EDE5E9; padding:10px 14px; }
+.trow.twrong { background:#fdf6f7; }
+.trow.tskip { color:#B09AA8; }
+.res-sym { font-size:20px; }
+.play-sm-btn { font-size:13px; padding:4px 13px; border-radius:20px; border:1.5px solid #5E8F8A; color:#5E8F8A; background:transparent; cursor:pointer; font-family:inherit; }
+.play-sm-btn:hover { background:#BBDCD8; }
+
+/* Replay section */
+.replay-section { background:var(--card); border-radius:14px; border:2px solid var(--border); padding:18px 20px; margin-bottom:20px; }
+.replay-title { font-size:16px; font-weight:700; color:#4A3040; margin-bottom:12px; }
+.replay-item { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid #F5F0F2; font-size:15px; }
+.replay-item:last-child { border-bottom:none; }
+.replay-dot { width:8px;height:8px;border-radius:50%;background:#c4a030;flex-shrink:0; }
+
+/* ── RESULTS ── old ones kept below */
+.res-bar { background: #F0E5DE; border-radius: var(--r); padding: 22px 26px; margin-bottom: 24px; color: #4A3040; display: flex; align-items: center; gap: 16px; }
+.rav { width: 56px; height: 56px; border-radius: 50%; background: #C06C7E; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #fff; }
+.rnm { font-size: 18px; font-weight: 700; color: #4A3040; }
+.rmt { font-size: 14px; color: #6b6e9a; margin-top: 2px; }
+.rgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+.rc { background: var(--card); border-radius: var(--r-sm); border: 2.5px solid var(--border); padding: 11px 14px; box-shadow: var(--sh); }
+.rcl { font-size: 11px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.rcv { font-size: 18px; font-weight: 900; line-height: 1; color: var(--ui-dark); }
+.rcu { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+.rcv.accent { color: #C06C7E; }
+.rsec { background: var(--card); border-radius: var(--r-sm); border: 2.5px solid var(--border); padding: 20px 22px; margin-bottom: 16px; }
+.rstit { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
+.drow { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 2px solid var(--bg); font-size: 16px; }
+.drow:last-child { border-bottom: none; }
+.dk { color: var(--ink2); }
+.dv.err { color: var(--asp-big); font-weight: 700; }
+.play-err-btn { font-size: 14px; padding: 5px 14px; border-radius: 20px; border: 2px solid #5E8F8A; background: transparent; color: #5E8F8A; cursor: pointer; font-family: inherit; transition: all .15s; font-weight: 600; }
+.play-err-btn:hover { background: #5E8F8A; color: #fff; }
+.rp-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; margin-bottom: 4px; font-size: 16px; }
+.rp-dot { width: 6px; height: 6px; border-radius: 50%; background: #c4a030; flex-shrink: 0; }
+.rbtns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+.rb { padding: 14px 26px; font-size: 16px; font-weight: 700; border-radius: 40px; border: 2.5px solid; cursor: pointer; font-family: inherit; transition: all .15s; }
+.rb-g { border-color: var(--border); color: var(--ink2); background: transparent; }
+.rb-g:hover { background: var(--bg); }
+.rb-dark { background: #4A3040; color: #F5F0F2; border-color: #4A3040; }
+.rb-dark:hover { opacity: .88; }
+.rb-accent { background: #C06C7E; color: #fff; border-color: #C06C7E; }
+.rb-accent:hover { opacity: .88; }
+
+/* ── HISTORY ── */
+.hwrap { background: var(--card); border-radius: var(--r); border: 2.5px solid var(--border); overflow: hidden; box-shadow: var(--sh); }
+.hr { display: grid; grid-template-columns: repeat(6, 1fr); border-bottom: 2px solid var(--bg); padding: 16px 20px; font-size: 16px; cursor: pointer; transition: background .12s; align-items: center; }
+.hr:last-child { border-bottom: none; }
+.hr:hover { background: #EFC4CC22; }
+.hr.hd { font-size: 13px; font-weight: 700; color: #B09AA8; text-transform: uppercase; letter-spacing: .05em; cursor: default; background: #F5F0F2; }
+.hr.hd:hover { background: #F5F0F2; }
+.ap { display: inline-block; font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+.a-hi { background: #BBDCD8; color: #2a5e5a; }
+.a-mid { background: #FFF3D0; color: #7a5000; }
+.a-lo  { background: #EFC4CC; color: #7a2030; }
+
+/* ── EDIT ── */
+.sec-hd { font-size: 16px; font-weight: 700; color: var(--ink2); margin-bottom: 10px; }
+.edit-cat-nav { display: flex; gap: 10px; flex-wrap: wrap; }
+.cat-nav-btn { padding: 13px 24px; font-size: 16px; font-weight: 700; border-radius: var(--r-sm); border: 3px solid transparent; cursor: pointer; font-family: inherit; transition: all .18s; }
+.cat-nav-btn:hover { transform: translateY(-2px); box-shadow: var(--sh); }
+.cat-nav-btn.active { box-shadow: var(--shh); transform: translateY(-2px); }
+.sg-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.sg-tab { padding: 10px 20px; font-size: 15px; font-weight: 700; border-radius: 40px; border: 2.5px solid var(--border); cursor: pointer; font-family: inherit; background: var(--bg); color: var(--ink2); transition: all .15s; }
+.sg-tab.active { border-color: #4A3040; background: #4A3040; color: #fff; }
+.sg-tab:hover { border-color: #7B6079; }
+.add-form { display: flex; gap: 10px; align-items: center; background: var(--card); border: 2px solid var(--border); border-radius: var(--r-sm); padding: 12px 16px; margin-top: 10px; }
+.add-form input { flex: 1; padding: 10px 14px; font-size: 16px; border: 2px solid var(--border); border-radius: var(--r-xs); font-family: inherit; outline: none; background: var(--bg); color: var(--ink); }
+.add-form input:focus { border-color: var(--ui-purple); background: #fff; }
+.add-form-btn { padding: 10px 20px; font-size: 15px; font-weight: 700; background: #4A3040; color: #fff; border: none; border-radius: var(--r-xs); cursor: pointer; font-family: inherit; white-space: nowrap; }
+.add-form-cancel { padding: 10px 16px; font-size: 15px; font-weight: 700; background: transparent; color: var(--ink2); border: 2px solid var(--border); border-radius: var(--r-xs); cursor: pointer; font-family: inherit; }
+.toggle-add-btn { padding: 10px 20px; font-size: 15px; font-weight: 700; border: 2.5px dashed var(--border); border-radius: var(--r-sm); background: transparent; color: var(--ink3); cursor: pointer; font-family: inherit; transition: all .15s; }
+.toggle-add-btn:hover { border-color: #7B6079; color: #7B6079; }
+.ecard { background: var(--card); border-radius: var(--r); border: 2.5px solid var(--border); padding: 22px; margin-bottom: 18px; box-shadow: var(--sh); }
+.ehead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.etit { font-size: 18px; font-weight: 700; color: var(--ink); }
+.edel { font-size: 15px; color: #C06C7E; border: none; background: none; cursor: pointer; font-family: inherit; font-weight: 600; }
+.edel:hover { text-decoration: underline; }
+.er { display: grid; gap: 14px; margin-bottom: 14px; }
+.er3 { grid-template-columns: 1fr 1fr 1fr; }
+.el { font-size: 13px; font-weight: 700; color: var(--ink2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+.ei { width: 100%; padding: 12px 15px; font-size: 16px; border: 2.5px solid var(--border); border-radius: var(--r-xs); background: var(--bg); color: var(--ink); font-family: inherit; outline: none; transition: border .15s; }
+.ei:focus { border-color: #7B6079; background: #fff; }
+.eimgs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.eutile { border: 2.5px dashed var(--border); border-radius: var(--r-sm); padding: 14px; text-align: center; cursor: pointer; transition: all .15s; }
+.eutile:hover { border-color: #7B6079; background: #F5F0F2; }
+.eutile input[type=file] { display: none; }
+.etl { font-size: 14px; color: var(--ink3); }
+.etok { font-size: 14px; color: #1a6a1a; font-weight: 700; }
+.eutile img { max-height: 52px; object-fit: contain; border-radius: 6px; display: block; margin: 0 auto 6px; }
+.lvg { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px,1fr)); gap: 7px; }
+.lvt { border: 2px solid var(--border); border-radius: 8px; padding: 7px 5px; text-align: center; cursor: pointer; transition: all .15s; background: var(--bg); }
+.lvt:hover { border-color: #7B6079; background: #F5F0F2; }
+.lvt input[type=file] { display: none; }
+.ltn { font-size: 12px; font-weight: 700; color: var(--ink3); margin-bottom: 2px; }
+.ltok { font-size: 11px; color: #1a6a1a; font-weight: 700; }
+.lvt.hf { border-color: #60c5ba; background: #e2f5f4; }
+.lvt-del { font-size: 10px; color: var(--asp-big); border: none; background: none; cursor: pointer; display: block; margin: 2px auto 0; }
+.chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.chip { font-size: 14px; padding: 6px 16px; border-radius: 20px; cursor: pointer; border: 2.5px solid var(--border); background: var(--bg); color: var(--ink2); font-family: inherit; transition: all .15s; }
+.chip.skip-asp { background: #EFC4CC; color: #C06C7E; border-color: #C06C7E; }
+.chip.skip-pos { background: #BBDCD8; color: #2a5e5a; border-color: #5E8F8A; }
+.chip.skip { background: #EFC4CC; color: #C06C7E; border-color: #C06C7E; }
+.add-set-btn { width: 100%; padding: 15px; font-size: 16px; font-weight: 700; border: 2.5px dashed var(--border); border-radius: var(--r); background: transparent; color: var(--ink3); cursor: pointer; font-family: inherit; transition: all .15s; margin-bottom: 14px; }
+.add-set-btn:hover { border-color: #7B6079; color: #7B6079; background: #F5F0F2; }
+.dino-up-tile { border: 2.5px dashed var(--border); border-radius: var(--r-sm); padding: 18px; text-align: center; cursor: pointer; transition: all .15s; margin-bottom: 24px; display: block; }
+.dino-up-tile:hover { border-color: #7B6079; background: #F5F0F2; }
+.dino-up-tile input[type=file] { display: none; }
+.big-save-btn { padding: 18px 52px; font-size: 16px; font-weight: 700; background: #7B6079; color: #fff; border: none; border-radius: var(--r-sm); cursor: pointer; font-family: inherit; transition: all .18s; }
+.big-save-btn:hover { opacity: .88; transform: translateY(-2px); }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <button class="tab active" data-sc="landing" onclick="switchTab('landing')">首頁</button>
+  <button class="tab" data-sc="profile" onclick="switchTab('profile')">個人基本資料</button>
+  <button class="tab" data-sc="home"    onclick="switchTab('home')">作業選單</button>
+  <button class="tab" data-sc="history" onclick="switchTab('history')">歷次紀錄</button>
+  <button class="tab" data-sc="edit"    onclick="switchTab('edit')">編輯語音</button>
+</div>
+
+<!-- LANDING -->
+<div class="screen active" id="screen-landing">
+  <div style="max-width:480px;margin:0 auto;padding-top:20px">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="background:#F0E5DE;border-radius:var(--r);padding:28px 32px;margin-bottom:0">
+        <div style="font-family:'Fredoka One','Noto Sans TC',sans-serif;font-size:38px;font-weight:900;color:#4A3040;letter-spacing:.12em;text-align:center">語音辨識訓練系統</div>
+      </div>
+
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <button class="landing-btn" style="border-color:#EFC4CC;background:#fdf6f7" onclick="switchTab('profile')">
+        <div class="landing-btn-text" style="color:#C06C7E;text-align:center;flex:1">個人基本資料</div>
+        <div class="landing-btn-arrow" style="color:#C06C7E">›</div>
+      </button>
+      <button class="landing-btn" style="border-color:#BBDCD8;background:#f4fbfa" onclick="switchTab('home')">
+        <div class="landing-btn-text" style="color:#5E8F8A;text-align:center;flex:1">作業選單</div>
+        <div class="landing-btn-arrow" style="color:#5E8F8A">›</div>
+      </button>
+      <button class="landing-btn" style="border-color:#F4D06F;background:#fffdf0" onclick="switchTab('history')">
+        <div class="landing-btn-text" style="color:#9a7a10;text-align:center;flex:1">歷次紀錄</div>
+        <div class="landing-btn-arrow" style="color:#9a7a10">›</div>
+      </button>
+      <button class="landing-btn" style="border-color:#D4BEC8;background:#faf7f9" onclick="switchTab('edit')">
+        <div class="landing-btn-text" style="color:#7B6079;text-align:center;flex:1">編輯語音</div>
+        <div class="landing-btn-arrow" style="color:#7B6079">›</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="screen" id="screen-profile">
+  <div style="font-size:20px;font-weight:700;color:#4A3040;margin-bottom:18px;text-align:center">個人基本資料</div>
+  <div class="pcard">
+    <div class="frow">
+      <div><div class="fl">姓名</div><input class="fi" id="pf-name" placeholder="姓名"></div>
+      <div><div class="fl">性別</div>
+        <select class="fi" id="pf-gender"><option value="">請選擇</option><option>男</option><option>女</option><option>其他</option></select></div>
+    </div>
+    <div class="frow">
+      <div><div class="fl">年齡</div><input class="fi" id="pf-age" type="number" placeholder="歲"></div>
+      <div><div class="fl">年級</div><input class="fi" id="pf-grade" placeholder="年級"></div>
+    </div>
+    <div class="frow full">
+      <div><div class="fl">組別</div><input class="fi" id="pf-group" placeholder="組別"></div>
+    </div>
+    <button class="go-btn" onclick="saveProfile()">進入作業選單</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="screen-home">
+  <div class="pbar">
+    <div class="pav" id="h-av">?</div>
+    <div><div class="pnm" id="h-nm">未設定</div><div class="pmt" id="h-mt"></div></div>
+    <button class="eln" onclick="switchTab('profile')">編輯資料</button>
+  </div>
+  <div id="home-cats"></div>
+</div>
+
+<!-- TASK -->
+<div class="screen" id="screen-task">
+  <div class="task-outer">
+    <div class="task-phoneme-label" id="task-phoneme-label"></div>
+    <div class="bulbs" id="bulbs"></div>
+    <div class="dino-area" style="display:flex;align-items:center;justify-content:center;gap:18px">
+      <div class="dino-click" id="dino-click" onclick="playStimulus()">
+        <div id="dino-inner"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+        <div class="speech-bub">點我說話！</div>
+        <div class="need-play" id="need-play" style="margin-bottom:0;text-align:left"></div>
+      </div>
+    </div>
+    
+    <div class="choices">
+      <button class="cbtn" id="ch-A" onclick="selectChoice('A')"><div class="cimg" id="img-A"></div></button>
+      <button class="cbtn" id="ch-B" onclick="selectChoice('B')"><div class="cimg" id="img-B"></div></button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="screen-results">
+  <div class="res-bar" style="margin-bottom:20px">
+    <div class="rav" id="r-av">?</div>
+    <div><div class="rnm" id="r-nm">—</div><div class="rmt" id="r-mt">—</div></div>
+  </div>
+
+  <div class="sec-label-res">整體表現</div>
+  <div class="stats-row3">
+    <div class="rc3"><div class="rc3-label">作業時長</div><div class="rc3-val" id="s-dur">—</div><div class="rc3-sub">秒</div></div>
+    <div class="rc3"><div class="rc3-label">辨識正確率</div><div class="rc3-val pink" id="s-acc">—</div><div class="rc3-sub" id="s-acc-frac"></div></div>
+    <div class="rc3"><div class="rc3-label">重聽觸發</div><div class="rc3-val" id="s-rpt">—</div><div class="rc3-sub">題（超過2次）</div></div>
+  </div>
+
+  <div class="sec-label-res">類別邊界量尺</div>
+  <div class="scale-card-new">
+    <div class="scale-endpoints">
+      <div><div class="ep-word" id="sc-word-a">—</div><div id="sc-ipa-a" style="display:none"></div></div>
+      <div style="text-align:right"><div class="ep-word" id="sc-word-b">—</div><div id="sc-ipa-b" style="display:none"></div></div>
+    </div>
+    <div class="scale-track">
+      <div class="scale-rail"></div>
+      <div class="scale-fill-a" id="sc-fill-a" style="width:0"></div>
+      <div class="scale-fill-b" id="sc-fill-b" style="width:0"></div>
+      <div class="scale-dots-row" id="sc-dots"></div>
+    </div>
+    <div class="scale-nums" id="sc-nums"></div>
+  </div>
+
+  <div class="sec-label-res">錯誤分析</div>
+  <div class="trial-card-new">
+    <div class="trow thdr">
+      <div>題次</div><div>語詞</div><div>階層</div><div>作答</div><div>試聽</div>
+    </div>
+    <div id="trial-rows"></div>
+  </div>
+
+  <div class="replay-section" id="rp-box" style="display:none">
+    <div class="replay-title">重聽紀錄</div>
+    <div id="rp-content"></div>
+  </div>
+
+  <div class="rbtns">
+    <button class="rb rb-g" onclick="switchTab('home')">回作業選單</button>
+    <button class="rb rb-g" onclick="retryTask()">再試一次</button>
+    <button class="rb" style="background:#C06C7E;color:#fff;border-color:#C06C7E" onclick="nextSetInSg()">下一組</button>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="screen" id="screen-history">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px">
+    <div style="font-size:24px;font-weight:900;text-align:center">歷次紀錄</div>
+    <div style="display:flex;gap:10px">
+      <button class="rb rb-g" onclick="exportAllCSV()">匯出全部</button>
+      <button id="hist-edit-btn" class="rb rb-g" onclick="toggleHistEdit()">編輯</button>
+    </div>
+  </div>
+  <div class="hwrap">
+    <div class="hr hd" style="text-align:center"><div>日期</div><div>年齡</div><div>組別</div><div>姓名</div><div>語音類別</div><div>正確率</div></div>
+    <div id="hist-body"></div>
+  </div>
+  <div id="hist-empty" style="text-align:center;padding:40px;color:var(--ink3);font-size:18px;display:none">尚無歷次紀錄</div>
+</div>
+
+<!-- EDIT -->
+<div class="screen" id="screen-edit">
+  <div style="font-size:24px;font-weight:900;margin-bottom:4px;text-align:center">編輯語音</div>
+  <div style="margin-bottom:22px"></div>
+
+  <div style="font-size:14px;font-weight:700;color:#7B6079;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">說話者</div>
+  <label class="dino-up-tile">
+    <input type="file" accept="image/*" onchange="uploadDino(this)">
+    <div id="dino-edit-prev"></div>
+    <div id="dino-edit-lbl" style="font-size:16px;color:var(--ink3)">點擊上傳或更換怪獸圖片</div>
+  </label>
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+    <div class="sec-hd" style="margin-bottom:0">類別</div>
+    <button id="cat-edit-toggle-btn" onclick="toggleCatEditMode()" style="font-size:14px;font-weight:700;padding:6px 16px;border-radius:20px;border:2px solid #D4BEC8;background:transparent;color:#7B6079;cursor:pointer;font-family:inherit;transition:all .15s">編輯類別</button>
+  </div>
+  <div id="edit-cat-nav" class="edit-cat-nav" style="margin-bottom:10px"></div>
+  <div id="add-cat-form" style="display:none" class="add-form">
+    <input id="new-cat-name" placeholder="輸入類別名稱，如：聲母送氣與否">
+    <button class="add-form-btn" onclick="confirmAddCat()">新增</button>
+    <button class="add-form-cancel" onclick="cancelAddCat()">取消</button>
+  </div>
+
+  <div id="edit-subgroup-area" style="display:none;margin-top:22px">
+    <div class="sec-hd">子類別</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      <div class="sg-tabs" id="sg-tabs"></div>
+      <div id="add-sg-row" style="display:none">
+        <button class="toggle-add-btn" onclick="toggleAddSg()">＋ 新增子類別</button>
+      </div>
+    </div>
+    <div id="add-sg-form" style="display:none" class="add-form">
+      <input id="new-sg-name" placeholder="輸入子類別名稱，如：塞音">
+      <button class="add-form-btn" onclick="confirmAddSg()">新增</button>
+      <button class="add-form-cancel" onclick="cancelAddSg()">取消</button>
+    </div>
+    <div id="edit-sets-area" style="margin-top:18px"></div>
+    <button class="add-set-btn" onclick="addSet()">＋ 新增語音</button>
+  </div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button class="big-save-btn" onclick="saveAll()">套用並回作業選單</button>
+  </div>
+</div>
+
+<script>
+// ── CATEGORY COLOR PALETTE ────────────────────────────────────────
+const CAT_COLORS = [
+  { bg:'#C06C7E', soft:'#EFC4CC', text:'#fff', dark:'#7a2030' },   // 0 asp
+  { bg:'#5E8F8A', soft:'#BBDCD8', text:'#fff', dark:'#2a5e5a' },   // 1 pos
+  { bg:'#C06C7E', soft:'#EFC4CC', text:'#fff', dark:'#7a2030' },   // 2
+  { bg:'#7B6079', soft:'#F5F0F2', text:'#fff', dark:'#4A3040' },   // 3
+  { bg:'#D4BEC8', soft:'#F5F0F2', text:'#4A3040', dark:'#7B6079' }, // 4
+  { bg:'#F4D06F', soft:'#FFF3D0', text:'#4A3040', dark:'#c4a030' }, // 5
+];
+
+// sub-group colors: stored per sg, default by cat
+// asp → #fec8c9 text #8a1a2e
+// pos → #d8e9ef text #1a4a6a
+const SG_PRESETS = {
+  'cat_asp': { bg:'#EFC4CC', text:'#7a2030', border:'#D4A4AC' },
+  'cat_pos': { bg:'#BBDCD8', text:'#2a5e5a', border:'#8CC4C0' },
+};
+function getSgColor(catId) {
+  if(SG_PRESETS[catId]) return SG_PRESETS[catId];
+  const col = CAT_COLORS[editDraft.cats.findIndex(c=>c.id===catId) % CAT_COLORS.length];
+  return { bg: col.soft, text: col.dark, border: col.bg };
+}
+// For home rendering (uses allCats):
+function getHomeSgColor(catId) {
+  if(SG_PRESETS[catId]) return SG_PRESETS[catId];
+  const idx = allCats.findIndex(c=>c.id===catId);
+  const col = CAT_COLORS[idx % CAT_COLORS.length];
+  return { bg: col.soft, text: col.dark, border: col.bg };
+}
+
+// ── DEFAULT DATA ──────────────────────────────────────────────────
+const DEFAULT_CATS = [
+  { id:'cat_asp', name:'聲母送氣與否', colorIdx:0,
+    subgroups:[
+      { id:'sg_stop', label:'塞音',   ids:['p-ph','t-th','k-kh'] },
+      { id:'sg_affr', label:'塞擦音', ids:['tc-tch','ts-tsh'] },
+    ]
+  },
+  { id:'cat_pos', name:'構音位置', colorIdx:1,
+    subgroups:[
+      { id:'sg_av', label:'齒槽/軟齶', ids:['th-kh'] },
+    ]
+  },
+];
+const DEFAULT_SETS = [
+  {id:'p-ph',   catId:'cat_asp',sgId:'sg_stop',bopomofo:'ㄅ/ㄆ',ipa:'[p] / [pʰ]',  levels:7,skip:[4],reps:1,wordA:'棒',wordB:'胖',A:{correct:[1,2,3]},B:{correct:[5,6,7]}},
+  {id:'t-th',   catId:'cat_asp',sgId:'sg_stop',bopomofo:'ㄉ/ㄊ',ipa:'[t] / [tʰ]',  levels:7,skip:[4],wordA:'大', wordB:'他', A:{correct:[1,2,3]},B:{correct:[5,6,7]}},
+  {id:'k-kh',   catId:'cat_asp',sgId:'sg_stop',bopomofo:'ㄍ/ㄎ',ipa:'[k] / [kʰ]',  levels:7,skip:[4],wordA:'個', wordB:'刻', A:{correct:[1,2,3]},B:{correct:[5,6,7]}},
+  {id:'tc-tch', catId:'cat_asp',sgId:'sg_affr',bopomofo:'ㄐ/ㄑ',ipa:'[tɕ] / [tɕʰ]',levels:7,skip:[4],wordA:'幾',wordB:'欺',A:{correct:[1,2,3]},B:{correct:[5,6,7]}},
+  {id:'ts-tsh', catId:'cat_asp',sgId:'sg_affr',bopomofo:'ㄗ/ㄘ',ipa:'[ts] / [tsʰ]',levels:7,skip:[4],wordA:'字',wordB:'次',A:{correct:[1,2,3]},B:{correct:[5,6,7]}},
+  {id:'th-kh',  catId:'cat_pos',sgId:'sg_av',  bopomofo:'ㄊ/ㄎ',ipa:'[tʰ] / [kʰ]', levels:5,skip:[3],wordA:'他',wordB:'卡',A:{correct:[1,2]},  B:{correct:[4,5]}},
+];
+
+const BP = {'ㄅ':'p','ㄆ':'pʰ','ㄇ':'m','ㄈ':'f','ㄉ':'t','ㄊ':'tʰ','ㄋ':'n','ㄌ':'l','ㄍ':'k','ㄎ':'kʰ','ㄏ':'x','ㄐ':'tɕ','ㄑ':'tɕʰ','ㄒ':'ɕ','ㄓ':'ʈʂ','ㄔ':'ʈʂʰ','ㄕ':'ʂ','ㄖ':'ʐ','ㄗ':'ts','ㄘ':'tsʰ','ㄙ':'s','ㄧ':'i','ㄨ':'u','ㄩ':'y','ㄚ':'a','ㄛ':'o','ㄜ':'ə','ㄝ':'e','ㄞ':'aɪ','ㄟ':'eɪ','ㄠ':'aʊ','ㄡ':'oʊ','ㄢ':'an','ㄣ':'ən','ㄤ':'aŋ','ㄥ':'əŋ','ㄦ':'ɚ'};
+function b2i(str){ return str.split('/').map(seg=>{ const t=seg.trim(); if(!t)return''; return '['+t.split('').map(c=>BP[c]||c).join('')+']'; }).join(' / '); }
+
+// ── STATE ─────────────────────────────────────────────────────────
+
+// One-time schema init (never clears user data after first run)
+const DATA_VERSION = 'v25';
+if(!localStorage.getItem('sdt_data_version')){
+  localStorage.removeItem('sdt_cats');
+  localStorage.removeItem('sdt_sets');
+  localStorage.setItem('sdt_data_version', DATA_VERSION);
+}
+let profile  = JSON.parse(localStorage.getItem('sdt_profile')||'{}');
+let allCats  = JSON.parse(localStorage.getItem('sdt_cats')||'null') || DEFAULT_CATS.map(c=>JSON.parse(JSON.stringify(c)));
+let allSets  = JSON.parse(localStorage.getItem('sdt_sets')||'null') || DEFAULT_SETS.map(s=>JSON.parse(JSON.stringify(s)));
+let histList = JSON.parse(localStorage.getItem('sdt_hist')||'[]');
+let userAssets = {};
+let dinoUrl = null;
+let editDraft = { cats:[], sets:[] };
+let catEditMode = false;
+let histEditMode = false;
+let editCatId = null, editSgId = null;
+let lastTaskId = null;
+let S = { def:null, trials:[], idx:0, results:[], startTime:null, answered:false, playCount:0, audio:null };
+
+const shuffle  = a=>{for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const inits    = n=>n?n.slice(0,2).toUpperCase():'?';
+const fmtD     = iso=>{const d=new Date(iso);return d.toLocaleDateString('zh-TW')+' '+d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});};
+const isScored = (def,lv)=>!def.skip.includes(lv);
+
+// ── TABS ─────────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const sc=document.getElementById('screen-'+name);
+  if(sc) sc.classList.add('active');
+  const tb=document.querySelector(`.tab[data-sc="${name}"]`);
+  if(tb) tb.classList.add('active');
+  if(name==='profile') loadPF();
+  if(name==='home')    renderHome();
+  if(name!=='edit'){ catEditMode=false; }
+  if(name==='history') renderHistory();
+  if(name==='edit')    renderEdit();
+}
+
+// ── PROFILE ───────────────────────────────────────────────────────
+function saveProfile(){
+  profile={name:document.getElementById('pf-name').value.trim()||'未命名',gender:document.getElementById('pf-gender').value,age:document.getElementById('pf-age').value,grade:document.getElementById('pf-grade').value,group:document.getElementById('pf-group').value};
+  localStorage.setItem('sdt_profile',JSON.stringify(profile));
+  switchTab('home');
+}
+function loadPF(){['name','gender','age','grade','group'].forEach(k=>{const el=document.getElementById('pf-'+k);if(el&&profile[k])el.value=profile[k];});}
+
+// ── HOME ──────────────────────────────────────────────────────────
+
+function renderHome(){
+  const n=profile.name||'未設定';
+  document.getElementById('h-av').textContent=inits(n);
+  document.getElementById('h-nm').textContent=n;
+  document.getElementById('h-mt').textContent=[profile.gender,profile.age?profile.age+'歲':null,profile.grade,profile.group].filter(Boolean).join('｜')||'請填寫基本資料';
+
+  const container=document.getElementById('home-cats');
+  container.innerHTML='';
+
+  allCats.forEach(cat=>{
+    const col = CAT_COLORS[cat.colorIdx%CAT_COLORS.length];
+    const setsInCat = allSets.filter(s=>s.catId===cat.id);
+    // always show category even if empty
+
+    const sec = document.createElement('div');
+    sec.className='cat-section';
+
+    let html=`<div class="cat-label-pill" style="background:${col.bg};color:${col.text}">${cat.name}</div>`;
+
+    function makeCards(sets){
+      return sets.map(s=>{
+        const label=s.ipa||b2i(s.bopomofo||'')||'—';
+        return `<div class="pc" style="border-color:${col.bg}"
+          onmouseover="this.style.background='${col.soft}';this.style.transform='translateY(-3px)';this.style.boxShadow='var(--shh)'"
+          onmouseout="this.style.background='var(--card)';this.style.transform='';this.style.boxShadow='var(--sh)'"
+          onclick="startTask('${s.id}')">
+          <div class="pc-ipa">${label}</div>
+        </div>`;
+      }).join('');
+    }
+
+    if(cat.subgroups&&cat.subgroups.length){
+      cat.subgroups.forEach(sg=>{
+        const sgSets=sg.ids.map(id=>setsInCat.find(s=>s.id===id)).filter(Boolean);
+        const thisSgCol=SG_PRESETS[cat.id]||{bg:col.soft,text:col.dark};
+        html+=`<div class="sub-label-pill" style="background:${thisSgCol.bg};color:${thisSgCol.text}">${sg.label}</div>`;
+        if(sgSets.length) html+=`<div class="pc-grid">${makeCards(sgSets)}</div>`;
+      });
+      const subIds=cat.subgroups.flatMap(sg=>sg.ids);
+      const extra=setsInCat.filter(s=>!subIds.includes(s.id));
+      if(extra.length) html+=`<div class="pc-grid">${makeCards(extra)}</div>`;
+    } else {
+      html+=`<div class="pc-grid">${makeCards(setsInCat)}</div>`;
+    }
+
+    sec.innerHTML=html;
+    container.appendChild(sec);
+  });
+}
+
+// ── DINO ─────────────────────────────────────────────────────────
+function renderDino(playing){
+  const inner=document.getElementById('dino-inner');
+  const dc=document.getElementById('dino-click');
+  if(!inner||!dc) return;
+  dc.className='dino-click'+(playing?' playing':'');
+  if(dinoUrl){inner.innerHTML=`<img src="${dinoUrl}" style="width:150px;height:150px;object-fit:contain;border-radius:20px;">`;}
+  else{inner.innerHTML=`<div class="dino-default">🦖</div>`;}
+}
+
+// ── TASK ──────────────────────────────────────────────────────────
+function startTask(id){
+  const def=allSets.find(s=>s.id===id); if(!def) return;
+  lastTaskId=id;
+  const reps = parseInt(def.reps)||1;
+  const baseTrials = Array.from({length:def.levels},(_,i)=>i+1);
+  let allTrials = [];
+  for(let r=0;r<reps;r++) allTrials = allTrials.concat([...baseTrials]);
+  S={def,trials:shuffle(allTrials),idx:0,results:[],startTime:Date.now(),answered:false,playCount:0,audio:null};
+  document.getElementById('bulbs').innerHTML=S.trials.map((_,i)=>`<div class="bulb" id="b${i}"></div>`).join('');
+  document.getElementById('task-phoneme-label').textContent=def.ipa||b2i(def.bopomofo||'')||'';
+  renderDino(false);
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-task').classList.add('active');
+  loadTrial();
+}
+
+function nextSetInSg(){
+  const def = S.def;
+  if(!def) return;
+  // Find current sg
+  const cat = allCats.find(c=>c.id===def.catId);
+  const sg  = cat?.subgroups?.find(sg=>sg.id===def.sgId);
+  if(!sg) { switchTab('home'); return; }
+  const idx = sg.ids.indexOf(def.id);
+  const nextId = sg.ids[idx+1];
+  if(!nextId){
+    // last in subgroup
+    switchTab('home');
+    return;
+  }
+  startTask(nextId);
+}
+function retryTask(){if(lastTaskId)startTask(lastTaskId);}
+function loadTrial(){
+  S.answered=false;S.playCount=0;renderDino(false);
+  document.getElementById('need-play').textContent='';
+  document.getElementById('ch-A').className='cbtn';
+  document.getElementById('ch-B').className='cbtn';
+  const assets=userAssets[S.def.id]||{};
+  ['A','B'].forEach(side=>{
+    const el=document.getElementById('img-'+side);
+    const url=side==='A'?assets.imgA:assets.imgB;
+    if(url){el.innerHTML=`<img src="${url}" alt="">`;}
+    else{el.innerHTML='';el.style.background='var(--bg)';}
+  });
+}
+function playStimulus(){
+  if(S.answered) return;
+  S.playCount++;renderDino(true);
+  document.getElementById('need-play').textContent='';
+  const lv=S.trials[S.idx];
+  const assets=userAssets[S.def.id]||{};
+  if(assets.audioLevels?.[lv]){
+    if(S.audio){S.audio.pause();S.audio.currentTime=0;}
+    S.audio=new Audio(assets.audioLevels[lv]);S.audio.play();
+    S.audio.onended=()=>renderDino(false);
+  } else {
+    if(!window.speechSynthesis) return;
+    const isA=S.def.A.correct?.includes(lv);
+    const word=isA?(S.def.wordA||'A'):(S.def.wordB||'B');
+    const u=new SpeechSynthesisUtterance(word);u.lang='zh-TW';u.rate=.85;
+    speechSynthesis.cancel();speechSynthesis.speak(u);
+    u.onend=()=>renderDino(false);
+  }
+}
+function selectChoice(c){
+  if(S.answered) return;
+  if(S.playCount===0){document.getElementById('need-play').textContent='請先聽聲音';return;}
+  S.answered=true;
+  document.getElementById('ch-'+c).className='cbtn chosen';
+  const lv=S.trials[S.idx],def=S.def;
+  const sc=isScored(def,lv);
+  const cc=def.A.correct?.includes(lv)?'A':def.B.correct?.includes(lv)?'B':null;
+  S.results.push({trial:S.idx+1,level:lv,choice:c,correctChoice:cc,isCorrect:c===cc,isScored:sc,replays:S.playCount-1});
+  const b=document.getElementById('b'+S.idx);if(b)b.classList.add('lit');
+  setTimeout(()=>{S.idx++;if(S.idx>=S.trials.length)showResults(false);else loadTrial();},380);
+}
+
+// ── RESULTS ───────────────────────────────────────────────────────
+function calcBoundary(res,def){
+  const bSide=[...res].filter(r=>def.B.correct?.includes(r.level)&&r.isScored).sort((a,b)=>a.level-b.level);
+  for(const r of bSide)if(r.isCorrect)return{level:r.level,trial:r.trial};
+  return null;
+}
+function calcScaleBoundary(results, def) {
+  // For each side: find the scored result closest to center (highest lv for A, lowest lv for B)
+  const aSorted = results.filter(r=>def.A.correct?.includes(r.level)&&r.isScored&&r.isCorrect).sort((a,b)=>b.level-a.level);
+  const bSorted = results.filter(r=>def.B.correct?.includes(r.level)&&r.isScored&&r.isCorrect).sort((a,b)=>a.level-b.level);
+  return { starA: aSorted[0]?.level||null, starB: bSorted[0]?.level||null };
+}
+
+function renderScale(results, def) {
+  const lvls = def.levels||7;
+  const skip = def.skip||[];
+  const { starA, starB } = calcScaleBoundary(results, def);
+
+  // dots
+  const dots = Array.from({length:lvls},(_,i)=>i+1).map(lv=>{
+    const isSkip = skip.includes(lv);
+    const r = results.find(x=>x.level===lv);
+    const isA = def.A.correct?.includes(lv);
+    let cls = '';
+    if(isSkip) cls='sd no-score';
+    else if(lv===starA) cls='sd star-a';
+    else if(lv===starB) cls='sd star-b';
+    else if(r?.isCorrect && isA) cls='sd ans-a';
+    else if(r?.isCorrect && !isA) cls='sd ans-b';
+    else cls='sd';
+    const inner = (lv===starA||lv===starB)?'★':(r?.isCorrect?'✓':(isSkip?'—':'✗'));
+    return `<div class="${cls}">${inner}</div>`;
+  }).join('');
+  document.getElementById('sc-dots').innerHTML = dots;
+
+  // nums
+  const nums = Array.from({length:lvls},(_,i)=>i+1).map(lv=>{
+    const isSkip = skip.includes(lv);
+    const cls = isSkip?'snum no-score':lv===starA?'snum sa':lv===starB?'snum sb':'snum';
+    return `<span class="${cls}">${lv}</span>`;
+  }).join('');
+  document.getElementById('sc-nums').innerHTML = nums;
+
+  // fills
+  const pct = (n) => ((n-1)/(lvls-1)*100).toFixed(1)+'%';
+  if(starA) document.getElementById('sc-fill-a').style.width = pct(starA);
+  if(starB) {
+    const bEl = document.getElementById('sc-fill-b');
+    bEl.style.width = ((lvls-starB)/(lvls-1)*100).toFixed(1)+'%';
+  }
+
+  // word labels
+  document.getElementById('sc-word-a').textContent = def.wordA||'A';
+  document.getElementById('sc-ipa-a').textContent  = '';
+  document.getElementById('sc-word-b').textContent = def.wordB||'B';
+  document.getElementById('sc-ipa-b').textContent  = '';
+}
+
+function showResults(isReview){
+  const def=S.def;
+  const dur=Math.round((Date.now()-S.startTime)/1000);
+  const sc=S.results.filter(r=>r.isScored);
+  const cor=sc.filter(r=>r.isCorrect).length;
+  const acc=sc.length?Math.round(cor/sc.length*100):0;
+  const hiRp=S.results.filter(r=>r.replays>1);
+
+  // Header
+  const n=profile.name||'未命名';
+  document.getElementById('r-av').textContent=inits(n);
+  document.getElementById('r-nm').textContent=n;
+  const now=new Date();
+  const titleStr=def.ipa||b2i(def.bopomofo||'');
+  document.getElementById('r-mt').textContent=[titleStr,fmtD(now.toISOString()),[profile.gender,profile.age?profile.age+'歲':null,profile.grade,profile.group].filter(Boolean).join('｜')].filter(Boolean).join('　');
+
+  // Stats
+  document.getElementById('s-dur').textContent=dur;
+  document.getElementById('s-acc').textContent=acc+'%';
+  document.getElementById('s-acc-frac').textContent=cor+' / '+sc.length+' 題';
+  document.getElementById('s-rpt').textContent=hiRp.length;
+
+  // Scale
+  renderScale(S.results, def);
+
+  // Trial rows — all trials
+  const trialEl = document.getElementById('trial-rows');
+  trialEl.innerHTML = S.results.map((r,i)=>{
+    const isSkip = !r.isScored;
+    const wordShown = r.correctChoice==='A'?(def.wordA||'A'):r.correctChoice==='B'?(def.wordB||'B'):'—';
+    const sym = isSkip ? '<span style="font-size:13px;color:#B09AA8">不計分</span>'
+               : r.isCorrect ? '<span style="font-size:22px">⭕</span>'
+               : '<span style="font-size:22px;color:#C06C7E">❌</span>';
+    const assets = userAssets[def.id]||{};
+    const hasAudio = !!(assets.audioLevels?.[r.level]);
+    const playBtn = hasAudio ? `<button class="play-sm-btn" onclick="playErrAudio(${r.level})">▶ 播放</button>` : `<span style="color:#B09AA8;font-size:13px">無音檔</span>`;
+    const rowCls = isSkip?'trow tskip':(!r.isCorrect?'trow twrong':'trow');
+    return `<div class="${rowCls}">
+      <div>${r.trial}</div>
+      <div>${isSkip?'—':wordShown}</div>
+      <div>${r.level}</div>
+      <div>${sym}</div>
+      <div>${playBtn}</div>
+    </div>`;
+  }).join('');
+
+  // Replay notes
+  const rb2=document.getElementById('rp-box'),rc=document.getElementById('rp-content');
+  if(hiRp.length){
+    rb2.style.display='block';
+    rc.innerHTML=hiRp.map(r=>`<div class="replay-item"><div class="replay-dot"></div>第 ${r.trial} 題（階層 ${r.level}）重聽 ${r.replays} 次</div>`).join('');
+  } else rb2.style.display='none';
+
+  // Save to history only if NOT a review
+  if(!isReview){
+    const bnd = calcScaleBoundary(S.results, def);
+    histList.unshift({date:now.toISOString(),taskId:def.id,title:titleStr,acc,
+      boundary:bnd.starB||'—', dur,profile:{...profile},results:S.results});
+    try{localStorage.setItem('sdt_hist',JSON.stringify(histList.slice(0,200)));}catch(e){}
+  }
+
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-results').classList.add('active');
+}
+let errAudio=null;
+function playErrAudio(lv){
+  const assets=userAssets[S.def.id]||{};if(!assets.audioLevels?.[lv])return;
+  const btn=document.getElementById('peb-'+lv);
+  if(errAudio){errAudio.pause();errAudio.currentTime=0;}
+  errAudio=new Audio(assets.audioLevels[lv]);
+  if(btn)btn.textContent='▶ 播放中…';errAudio.play();errAudio.onended=()=>{if(btn)btn.textContent='▶ 試聽';};
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────
+
+function toggleHistEdit(){
+  histEditMode = !histEditMode;
+  const btn = document.getElementById('hist-edit-btn');
+  if(btn){
+    btn.textContent = histEditMode ? '完成' : '編輯';
+    btn.style.background = histEditMode ? '#7B6079' : 'transparent';
+    btn.style.color = histEditMode ? '#fff' : '#4A3040';
+    btn.style.borderColor = histEditMode ? '#7B6079' : '';
+  }
+  renderHistory();
+}
+
+function deleteHistItem(i){
+  histList.splice(i,1);
+  localStorage.setItem('sdt_hist', JSON.stringify(histList));
+  renderHistory();
+}
+function renderHistory(){
+  const tb=document.getElementById('hist-body'),em=document.getElementById('hist-empty');
+  if(!histList.length){tb.innerHTML='';em.style.display='block';return;}
+  em.style.display='none';
+  tb.innerHTML=histList.map((r,i)=>{
+    const cls=r.acc>=80?'a-hi':r.acc>=60?'a-mid':'a-lo';
+    const p=r.profile||{};
+    const dateOnly=r.date?r.date.slice(0,10):'—';
+    const clickAttr = histEditMode ? '' : `onclick="viewHist(${i})"`;
+    const lastCol = histEditMode
+      ? `<div style="text-align:center"><button onclick="deleteHistItem(${i})" style="font-size:13px;font-weight:700;padding:4px 12px;border-radius:20px;border:2px solid #EFC4CC;background:#fff;color:#C06C7E;cursor:pointer">刪除</button></div>`
+      : '';
+    return`<div class="hr" ${clickAttr} style="${histEditMode?'cursor:default':''}">
+      <div style="font-size:13px;text-align:center">${dateOnly}</div>
+      <div style="font-size:13px;text-align:center">${p.age||'—'}</div>
+      <div style="font-size:13px;text-align:center">${p.group||'—'}</div>
+      <div style="font-weight:600;font-size:13px;text-align:center">${p.name||'—'}</div>
+      <div style="font-size:13px;text-align:center;color:var(--ink2)">${r.title}</div>
+      <div style="text-align:center"><span class="ap ${cls}">${r.acc}%</span></div>
+    </div>`;
+  }).join('');
+}
+function viewHist(i){
+  const r=histList[i];
+  const def=allSets.find(s=>s.id===r.taskId)||{id:r.taskId,ipa:r.title,bopomofo:'',skip:[],wordA:'',wordB:'',A:{correct:[]},B:{correct:[]}};
+  S.results=r.results;S.startTime=Date.now()-r.dur*1000;S.def=def;showResults(true);
+}
+function clearHist(){histList=[];localStorage.removeItem('sdt_hist');renderHistory();}
+
+// ── EDIT ──────────────────────────────────────────────────────────
+function renderEdit(){
+  editDraft.cats=allCats.map(c=>JSON.parse(JSON.stringify(c)));
+  editDraft.sets=allSets.map(s=>JSON.parse(JSON.stringify(s)));
+  if(!editCatId&&editDraft.cats.length) editCatId=editDraft.cats[0].id;
+  const cat=editDraft.cats.find(c=>c.id===editCatId);
+  if(cat&&cat.subgroups?.length){if(!editSgId||!cat.subgroups.find(sg=>sg.id===editSgId))editSgId=cat.subgroups[0].id;}else editSgId=null;
+  renderCatNav();renderSgTabs();renderSetList();renderDinoEditPrev();
+}
+
+function toggleCatEditMode(){
+  catEditMode = !catEditMode;
+  const btn = document.getElementById('cat-edit-toggle-btn');
+  if(btn){
+    btn.textContent = catEditMode ? '完成編輯' : '編輯類別';
+    btn.style.background = catEditMode ? '#7B6079' : 'transparent';
+    btn.style.color = catEditMode ? '#fff' : '#7B6079';
+  }
+  // show/hide add-cat-form (add new cat only in edit mode)
+  document.getElementById('add-cat-form').style.display = 'none';
+  renderCatNav();
+  renderSgTabs();
+}
+
+function renderCatNav(){
+  const nav = document.getElementById('edit-cat-nav');
+  nav.innerHTML = editDraft.cats.map(cat=>{
+    const col = CAT_COLORS[cat.colorIdx % CAT_COLORS.length];
+    const active = cat.id === editCatId;
+    if(catEditMode){
+      // input does NOT re-render on click — just focuses naturally
+      return`<div style="display:inline-flex;align-items:center;gap:6px;margin-bottom:8px;margin-right:4px">
+        <input data-catid="${cat.id}" value="${cat.name.replace(/"/g,'&quot;')}"
+          style="font-size:15px;font-weight:700;padding:8px 14px;border:2.5px solid ${col.bg};border-radius:10px;font-family:inherit;outline:none;background:${active?col.bg:col.soft};color:${active?col.text:col.dark};min-width:90px;width:auto"
+          oninput="updateCatName('${cat.id}',this.value)">
+        <button onclick="deleteCat('${cat.id}')" style="font-size:13px;line-height:1;width:26px;height:26px;border-radius:50%;border:2px solid #EFC4CC;background:#fff;color:#C06C7E;cursor:pointer;padding:0;flex-shrink:0">✕</button>
+      </div>`;
+    } else {
+      return`<button class="cat-nav-btn${active?' active':''}"
+        style="background:${active?col.bg:col.soft};color:${active?col.text:col.dark};border-color:${col.bg}"
+        onclick="selectEditCat('${cat.id}')">${cat.name}</button>`;
+    }
+  }).join('');
+  if(catEditMode){
+    nav.innerHTML += `<div style="display:inline-flex;margin-bottom:8px"><button class="toggle-add-btn" onclick="toggleAddCat()">＋ 新增類別</button></div>`;
+  }
+}
+
+function updateCatName(id, val){
+  const cat = editDraft.cats.find(c=>c.id===id);
+  if(cat) cat.name = val;
+  // don't re-render — just update visible state of active btn colour if needed
+}
+
+
+function startInlineEditById(btn, type, id){
+  // Look up current name safely at runtime — avoids string escaping in HTML
+  let currentName = '';
+  if(type==='cat'){
+    const cat = editDraft.cats.find(c=>c.id===id);
+    currentName = cat ? cat.name : '';
+  } else {
+    const cat = editDraft.cats.find(c=>c.id===editCatId);
+    const sg = cat?.subgroups?.find(sg=>sg.id===id);
+    currentName = sg ? sg.label : '';
+  }
+  const inp = document.createElement('input');
+  inp.value = currentName;
+  inp.style.cssText = 'font-size:15px;font-weight:700;padding:8px 14px;border:2.5px solid #7B6079;border-radius:10px;font-family:inherit;outline:none;min-width:120px;background:#fff;color:#4A3040';
+  btn.replaceWith(inp);
+  inp.focus(); inp.select();
+  function commit(){
+    const val = inp.value.trim() || currentName;
+    if(type==='cat'){
+      const cat = editDraft.cats.find(c=>c.id===id);
+      if(cat) cat.name = val;
+      renderCatNav(); renderSgTabs(); renderSetList();
+    } else {
+      const cat = editDraft.cats.find(c=>c.id===editCatId);
+      const sg = cat?.subgroups?.find(sg=>sg.id===id);
+      if(sg) sg.label = val;
+      renderSgTabs();
+    }
+  }
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e=>{
+    if(e.key==='Enter') inp.blur();
+    if(e.key==='Escape'){ inp.value=currentName; inp.blur(); }
+  });
+}
+
+function deleteSg(id){
+  // no confirm needed — direct delete
+  const cat = editDraft.cats.find(c=>c.id===editCatId);
+  if(!cat) return;
+  // move orphaned set ids back to ungrouped
+  const sg = cat.subgroups?.find(sg=>sg.id===id);
+  cat.subgroups = cat.subgroups.filter(sg=>sg.id!==id);
+  if(editSgId===id) editSgId = cat.subgroups[0]?.id || null;
+  autosave(); renderSgTabs(); renderSetList();
+}
+function deleteCat(id){
+  // no confirm needed — direct delete
+  editDraft.cats = editDraft.cats.filter(c=>c.id!==id);
+  editDraft.sets = editDraft.sets.filter(s=>s.catId!==id);
+  if(editCatId===id){
+    editCatId = editDraft.cats.length ? editDraft.cats[0].id : null;
+    editSgId  = editCatId ? (editDraft.cats.find(c=>c.id===editCatId)?.subgroups?.[0]?.id||null) : null;
+  }
+  renderCatNav(); renderSgTabs(); renderSetList();
+}
+function selectEditCat(id){
+  editCatId=id;
+  const cat=editDraft.cats.find(c=>c.id===id);
+  editSgId=cat?.subgroups?.[0]?.id||null;
+  if(!catEditMode){ renderCatNav(); }
+  // in edit mode, don't re-render nav (would destroy inputs) — just update set list
+  renderSgTabs();renderSetList();
+}
+function toggleAddCat(){const f=document.getElementById('add-cat-form');f.style.display=f.style.display==='none'?'flex':'none';if(f.style.display==='flex')document.getElementById('new-cat-name').focus();}
+function cancelAddCat(){document.getElementById('add-cat-form').style.display='none';document.getElementById('new-cat-name').value='';}
+function confirmAddCat(){
+  const name=document.getElementById('new-cat-name').value.trim();
+  if(!name){alert('請輸入類別名稱');return;}
+  const id='cat_'+Date.now();
+  const usedColors=editDraft.cats.map(c=>c.colorIdx);
+  const nextColor=[0,1,2,3,4,5].find(i=>!usedColors.includes(i))??(editDraft.cats.length%CAT_COLORS.length);
+  editDraft.cats.push({id,name,colorIdx:nextColor,subgroups:[]});
+  editCatId=id;editSgId=null;
+  autosave();cancelAddCat();renderCatNav();renderSgTabs();renderSetList();
+}
+function renderSgTabs(){
+  const area = document.getElementById('edit-subgroup-area');
+  const tabDiv = document.getElementById('sg-tabs');
+  const addSgRow = document.getElementById('add-sg-row');
+  const cat = editDraft.cats.find(c=>c.id===editCatId);
+  if(!cat){ area.style.display='none'; return; }
+  area.style.display = 'block';
+  // show/hide new-subcat button
+  if(addSgRow) addSgRow.style.display = catEditMode ? 'inline-block' : 'none';
+  if(!cat.subgroups || !cat.subgroups.length){ tabDiv.innerHTML=''; return; }
+  const sgCol = getSgColor(editCatId);
+  tabDiv.innerHTML = cat.subgroups.map(sg=>{
+    const active = sg.id === editSgId;
+    if(catEditMode){
+      return`<div style="display:inline-flex;align-items:center;gap:4px;margin-bottom:6px;margin-right:4px">
+        <input data-sgid="${sg.id}" value="${sg.label.replace(/"/g,'&quot;')}"
+          style="font-size:14px;font-weight:700;padding:7px 14px;border:2.5px solid ${sgCol.border};border-radius:20px;font-family:inherit;outline:none;background:${active?sgCol.bg:'var(--bg)'};color:${active?sgCol.text:'#7B6079'};min-width:70px;width:auto"
+          oninput="updateSgLabel('${sg.id}',this.value)">
+        <button onclick="deleteSg('${sg.id}')" style="font-size:12px;line-height:1;width:22px;height:22px;border-radius:50%;border:2px solid #EFC4CC;background:#fff;color:#C06C7E;cursor:pointer;padding:0;flex-shrink:0">✕</button>
+      </div>`;
+    } else {
+      return`<button class="sg-tab${active?' active':''}"
+        style="${active?`background:${sgCol.bg};color:${sgCol.text};border-color:${sgCol.border}`:''}"
+        onclick="selectSg('${sg.id}')">${sg.label}</button>`;
+    }
+  }).join('');
+}
+
+function updateSgLabel(id, val){
+  const cat = editDraft.cats.find(c=>c.id===editCatId);
+  const sg = cat?.subgroups?.find(sg=>sg.id===id);
+  if(sg) sg.label = val;
+  // no re-render — input stays focused
+}
+function selectSg(id){
+  editSgId=id;
+  if(!catEditMode){ renderSgTabs(); } else { renderSgTabs(); }
+  renderSetList();
+}
+function toggleAddSg(){const f=document.getElementById('add-sg-form');f.style.display=f.style.display==='none'?'flex':'none';if(f.style.display==='flex')document.getElementById('new-sg-name').focus();}
+function cancelAddSg(){document.getElementById('add-sg-form').style.display='none';document.getElementById('new-sg-name').value='';}
+function confirmAddSg(){
+  const name=document.getElementById('new-sg-name').value.trim();
+  if(!name){alert('請輸入分類名稱');return;}
+  const cat=editDraft.cats.find(c=>c.id===editCatId);
+  if(!cat) return;
+  if(!cat.subgroups) cat.subgroups=[];
+  const id='sg_'+Date.now();
+  cat.subgroups.push({id,label:name,ids:[]});
+  editSgId=id;autosave();cancelAddSg();renderSgTabs();renderSetList();
+}
+function renderSetList(){
+  const area=document.getElementById('edit-sets-area');
+  if(!editCatId){area.innerHTML='';return;}
+  const cat=editDraft.cats.find(c=>c.id===editCatId);
+  const col=cat?CAT_COLORS[cat.colorIdx%CAT_COLORS.length]:CAT_COLORS[0];
+  const sets=editDraft.sets.filter(s=>s.catId===editCatId&&(editSgId?s.sgId===editSgId:true));
+  area.innerHTML=sets.map(s=>{const gi=editDraft.sets.findIndex(x=>x.id===s.id);return buildSetCard(s,gi,col);}).join('');
+}
+function buildSetCard(s,gi,col){
+  const n=parseInt(s.levels)||0;
+  const assets=userAssets[s.id]||{};
+  const sk=s.skip||[];
+  const skipCls = editDraft.cats.find(c=>c.id===s.catId)?.id==='cat_pos'?'skip-pos':'skip-asp';
+  const chips=Array.from({length:n},(_,lv)=>lv+1).map(lv=>`<button class="chip${sk.includes(lv)?' '+skipCls:''}" onclick="toggleSkip(${gi},${lv})">${lv}</button>`).join('');
+  const lvs=Array.from({length:n},(_,lv)=>lv+1).map(lv=>{
+    const loaded=!!(assets.audioLevels?.[lv]);
+    return`<label class="lvt${loaded?' hf':''}"><div class="ltn">階層 ${lv}</div><input type="file" accept="audio/*" onchange="uploadAudio(${gi},${lv},this)">${loaded?`<div class="ltok">✓</div><button class="lvt-del" onclick="event.preventDefault();event.stopPropagation();removeAudio(${gi},${lv})">刪</button>`:''}</label>`;
+  }).join('');
+  const displayIpa=s.ipa||b2i(s.bopomofo||'')||'（未命名）';
+  return`<div class="ecard" style="border-left:5px solid ${col.bg}">
+    <div class="ehead"><div class="etit">${displayIpa}</div><button class="edel" onclick="delSet(${gi})">刪除</button></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 80px;gap:14px;margin-bottom:14px">
+      <div><div class="el">注音符號（格式：ㄅ/ㄆ）</div><input class="ei" value="${s.bopomofo||''}" placeholder="ㄅ/ㄆ" oninput="updateBopo(${gi},this.value)"></div>
+      <div><div class="el">階層數</div><input class="ei" type="number" min="1" max="20" value="${s.levels||''}" oninput="editDraft.sets[${gi}].levels=this.value;renderSetList()"></div>
+      <div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div class="el">詞語 A</div><input class="ei" value="${s.wordA||''}" placeholder="詞A" oninput="editDraft.sets[${gi}].wordA=this.value"></div><div><div class="el">詞語 B</div><input class="ei" value="${s.wordB||''}" placeholder="詞B" oninput="editDraft.sets[${gi}].wordB=this.value"></div></div></div>
+      <div><div class="el">重複次數</div><input class="ei" type="number" min="1" max="50" value="${s.reps||1}" oninput="editDraft.sets[${gi}].reps=parseInt(this.value)||1"></div>
+    </div>
+    <div class="eimgs">
+      <label class="eutile"><div class="el" style="margin-bottom:6px">圖片 A（.jpg）</div><input type="file" accept="image/*" onchange="uploadImg(${gi},'A',this)">${assets.imgA?`<img src="${assets.imgA}"><div class="etok">✓ 已上傳</div><button style="font-size:12px;color:var(--asp-big);border:none;background:none;cursor:pointer;margin-top:4px" onclick="event.preventDefault();event.stopPropagation();removeImg(${gi},'A')">刪除</button>`:`<div class="etl">點擊上傳</div>`}</label>
+      <label class="eutile"><div class="el" style="margin-bottom:6px">圖片 B（.jpg）</div><input type="file" accept="image/*" onchange="uploadImg(${gi},'B',this)">${assets.imgB?`<img src="${assets.imgB}"><div class="etok">✓ 已上傳</div><button style="font-size:12px;color:var(--asp-big);border:none;background:none;cursor:pointer;margin-top:4px" onclick="event.preventDefault();event.stopPropagation();removeImg(${gi},'B')">刪除</button>`:`<div class="etl">點擊上傳</div>`}</label>
+    </div>
+    ${n>0?`<div class="el" style="margin-bottom:8px">音檔 .mp3/.wav（共 ${n} 個階層）</div><div class="lvg">${lvs}</div><div class="el" style="margin:12px 0 8px">不計分的階層</div><div class="chip-row">${chips}</div>`:''}
+  </div>`;
+}
+function updateBopo(gi,val){
+  editDraft.sets[gi].bopomofo=val;editDraft.sets[gi].ipa=b2i(val);
+  const sets=editDraft.sets.filter(s=>s.catId===editCatId&&(editSgId?s.sgId===editSgId:true));
+  const localIdx=sets.findIndex(s=>editDraft.sets.indexOf(s)===gi);
+  const cards=document.querySelectorAll('#edit-sets-area .ecard');
+  if(localIdx>=0&&cards[localIdx]){const t=cards[localIdx].querySelector('.etit');if(t)t.textContent=editDraft.sets[gi].ipa||'（未命名）';}
+}
+function toggleSkip(gi,lv){const sk=editDraft.sets[gi].skip||[];const p=sk.indexOf(lv);if(p===-1)sk.push(lv);else sk.splice(p,1);editDraft.sets[gi].skip=sk;renderSetList();}
+function addSet(){
+  if(!editCatId) return;
+  const newSet={id:'set_'+Date.now(),catId:editCatId,sgId:editSgId||null,bopomofo:'',ipa:'',levels:'',skip:[],wordA:'',wordB:'',A:{correct:[]},B:{correct:[]}};
+  editDraft.sets.push(newSet);
+  if(editSgId){const cat=editDraft.cats.find(c=>c.id===editCatId);const sg=cat?.subgroups?.find(sg=>sg.id===editSgId);if(sg)sg.ids.push(newSet.id);}
+  autosave();renderSetList();
+}
+function delSet(gi){
+  const id=editDraft.sets[gi].id;editDraft.sets.splice(gi,1);editDraft.cats.forEach(cat=>{cat.subgroups?.forEach(sg=>{sg.ids=sg.ids.filter(x=>x!==id);});});autosave();renderSetList();
+}
+function uploadAudio(gi,lv,inp){const f=inp.files[0];if(!f)return;const id=editDraft.sets[gi].id;if(!userAssets[id])userAssets[id]={};if(!userAssets[id].audioLevels)userAssets[id].audioLevels={};userAssets[id].audioLevels[lv]=URL.createObjectURL(f);renderSetList();}
+function removeAudio(gi,lv){const id=editDraft.sets[gi].id;if(userAssets[id]?.audioLevels?.[lv]){URL.revokeObjectURL(userAssets[id].audioLevels[lv]);delete userAssets[id].audioLevels[lv];}renderSetList();}
+function uploadImg(gi,side,inp){const f=inp.files[0];if(!f)return;const id=editDraft.sets[gi].id;if(!userAssets[id])userAssets[id]={};if(userAssets[id]['img'+side])URL.revokeObjectURL(userAssets[id]['img'+side]);userAssets[id]['img'+side]=URL.createObjectURL(f);renderSetList();}
+function removeImg(gi,side){const id=editDraft.sets[gi].id;if(userAssets[id]?.['img'+side]){URL.revokeObjectURL(userAssets[id]['img'+side]);delete userAssets[id]['img'+side];}renderSetList();}
+function renderDinoEditPrev(){
+  const prev=document.getElementById('dino-edit-prev'),lbl=document.getElementById('dino-edit-lbl');
+  if(dinoUrl){prev.innerHTML=`<img src="${dinoUrl}" style="max-height:90px;border-radius:12px;margin:0 auto 8px;display:block">`;lbl.textContent='點擊更換圖片';}
+  else{prev.innerHTML='';lbl.textContent='點擊上傳或更換怪獸圖片';}
+}
+function uploadDino(inp){const f=inp.files[0];if(!f)return;if(dinoUrl)URL.revokeObjectURL(dinoUrl);dinoUrl=URL.createObjectURL(f);renderDinoEditPrev();}
+
+function autosave(){
+  allCats=editDraft.cats.map(c=>JSON.parse(JSON.stringify(c)));
+  allSets=editDraft.sets.map(s=>({...s,levels:parseInt(s.levels)||0,skip:s.skip||[],reps:parseInt(s.reps)||1}));
+  localStorage.setItem('sdt_cats',JSON.stringify(allCats));
+  localStorage.setItem('sdt_sets',JSON.stringify(allSets));
+}
+function saveAll(){
+  autosave();
+  switchTab('home');
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────
+function exportCSV(){
+  const def=S.def;const title=def.ipa||b2i(def.bopomofo||'');
+  const rows=[['受試者','性別','年齡','年級','組別','語音','題次','階層','作答','正確','計分','是否正確','重聽']];
+  S.results.forEach(r=>rows.push([profile.name||'',profile.gender||'',profile.age||'',profile.grade||'',profile.group||'',title,r.trial,r.level,r.choice,r.correctChoice,r.isScored?'是':'否',r.isCorrect?'是':'否',r.replays]));
+  dl(rows,'sdt_result');
+}
+function exportAllCSV(){
+  const rows=[['日期','受試者','性別','年齡','年級','組別','語音','正確率','邊界','時長']];
+  histList.forEach(r=>{const p=r.profile||{};rows.push([fmtD(r.date),p.name||'',p.gender||'',p.age||'',p.grade||'',p.group||'',r.title,r.acc+'%',r.boundary==='—'?'—':'階層'+r.boundary,r.dur+'s']);});
+  dl(rows,'sdt_all');
+}
+function dl(rows,name){
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv'}));
+  a.download=name+'_'+Date.now()+'.csv';a.click();
+}
+</script>
+</body>
+</html>
