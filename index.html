@@ -608,7 +608,7 @@ function getComputedCorrect(def) {
 }
 
 // ── STATE ─────────────────────────────────────────────────────────
-const DATA_VERSION = 'v30'; // 版本號更新
+const DATA_VERSION = 'v31'; // 版本號更新
 if(localStorage.getItem('sdt_data_version') !== DATA_VERSION){
   localStorage.removeItem('sdt_cats');
   localStorage.removeItem('sdt_sets');
@@ -1031,7 +1031,6 @@ function deleteHistItem(i){
 function renderHistory(){
   const tb=document.getElementById('hist-body'), em=document.getElementById('hist-empty'), hd=document.getElementById('hist-hd');
   
-  // 重新調整格線比例，插入「學校」欄位
   const gridCols = histEditMode ? '1.2fr 0.6fr 0.6fr 1fr 1fr 1.5fr 0.8fr 0.8fr 0.8fr' : '1.2fr 0.6fr 0.6fr 1fr 1fr 1.5fr 0.8fr 0.8fr';
   hd.style.gridTemplateColumns = gridCols;
   hd.innerHTML = `<div>日期</div><div>年齡</div><div>組別</div><div>學校</div><div>姓名</div><div>語音類別</div><div>正確率</div><div>錯誤階層</div>${histEditMode ? '<div>操作</div>' : ''}`;
@@ -1315,15 +1314,33 @@ function saveAll(){
 
 // ── EXPORT CSV ────────────────────────────────────────────────────────
 function exportAllCSV(){
-  const rows=[['日期','受試者','性別','年齡','組別','學校','語音','正確率','邊界','錯誤階層','時長']];
+  // 已經將表頭改為清楚的「A詞邊界(最大答對)」與「B詞邊界(最小答對)」
+  const rows=[['日期','受試者','性別','年齡','組別','學校','語音','正確率','A詞邊界(最大答對)','B詞邊界(最小答對)','錯誤階層','時長']];
   histList.forEach(r=>{
     const p=r.profile||{};
     const errLevels = [...new Set((r.results||[]).filter(x => x.isScored && !x.isCorrect).map(x => x.level))].sort((a,b)=>a-b).join(', ');
     const errStr = errLevels ? errLevels : '無';
-    rows.push([fmtD(r.date),p.name||'',p.gender||'',p.age||'',p.group||'',p.school||'',r.title,r.acc+'%',r.boundary==='—'?'—':'階層'+r.boundary, errStr, r.dur+'s']);
+    
+    // 計算雙邊界
+    const def = allSets.find(s=>s.id===r.taskId);
+    let bndA = '—', bndB = '—';
+    if(def && r.results) {
+       const comp = getComputedCorrect(def);
+       const aSorted = r.results.filter(x=>comp.A.includes(x.level)&&x.isScored&&x.isCorrect).sort((a,b)=>b.level-a.level); // 降冪排序，取最大值
+       const bSorted = r.results.filter(x=>comp.B.includes(x.level)&&x.isScored&&x.isCorrect).sort((a,b)=>a.level-b.level); // 升冪排序，取最小值
+       
+       bndA = aSorted[0] ? '階層'+aSorted[0].level : '—';
+       bndB = bSorted[0] ? '階層'+bSorted[0].level : '—';
+    } else {
+       // 相容舊資料的防錯機制
+       bndB = r.boundary === '—' ? '—' : (String(r.boundary).includes('階層') ? r.boundary : '階層'+r.boundary);
+    }
+    
+    rows.push([fmtD(r.date),p.name||'',p.gender||'',p.age||'',p.group||'',p.school||'',r.title,r.acc+'%', bndA, bndB, errStr, r.dur+'s']);
   });
   dl(rows,'sdt_all_records');
 }
+
 function dl(rows,name){
   const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv'}));
