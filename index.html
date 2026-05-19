@@ -680,7 +680,9 @@ function importJSONConfig(input) {
             allCats = data.cats || []; allSets = data.sets || [];
             userAssets = data.assets || {}; dinoUrl = data.dinoClosed || null;
             dinoOpenUrl = data.dinoOpen || null;
-            autosave(); renderEdit(); alert("設定檔匯入成功！");
+            // 修復：先 renderEdit() 初始化 editDraft，再 autosave() 保存
+            // 之前的順序會導致 autosave() 將空的 editDraft 覆蓋掉剛才匯入的 allCats/allSets
+            renderEdit(); autosave(); alert("設定檔匯入成功！");
         } catch (err) { alert("檔案格式錯誤，無法匯入！"); }
         input.value = ""; 
     };
