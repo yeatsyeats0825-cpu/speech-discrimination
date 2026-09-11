@@ -1494,8 +1494,8 @@ function generateReport() {
     const has1or7 = p.errLevels.some(l => l === 1 || l === 7);
     const hasMid = p.errLevels.some(l => [3, 4, 5].includes(l));
 
-    // 困難：只要第 1 階層或第 7 階層任一個出現錯誤，就判定到困難
-    if (p.errLevels.includes(1) || p.errLevels.includes(7)) {
+    // 困難：< 70% 或 錯在 1 或 7
+    if (p.acc < 70 || has1or7) {
       if (!attentionMap.has(key)) attentionMap.set(key, item);
     } 
     // 易混淆：70-90% 或 錯在 3,4,5
